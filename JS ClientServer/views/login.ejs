@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <body>
+    <div id="login" class="row justify-content-center align-items-center">
+      <div id="login-2" class="col-md-5">
+        <h4 class="text-center">Hey, welcome to the SkribblAI</h4>
+        <form>
+          <label for="username" style="color: #dc1402">Username:</label><br />
+          <input
+            v-model="username"
+            type="text"
+            name="login"
+            class="form-control"
+            placeholder="Enter your username"
+          />
+        </form>
+        <form style="margin-top: 10px">
+          <label for="password" style="color: #dc1402">Password:</label><br />
+          <input
+            v-model="password"
+            type="password"
+            name="login"
+            class="form-control"
+            placeholder="Enter your password"
+          />
+          <small class="form-text text-muted"
+            >Do not use a sensitive password</small
+          >
+        </form>
+        <form style="margin-top: 10px">
+          <button type="button" class="btn btn-primary" @click="login">
+            Login
+          </button>
+          <button
+            type="button"
+            class="btn btn-sm btn-outline-secondary"
+            @click="register"
+          >
+            Register
+          </button>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>

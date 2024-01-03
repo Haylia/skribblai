@@ -1,19 +1,21 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
+  <%- include('header'); -%>
 
-    <%- include('header'); -%>
+  <h2 class="title">ECS Example Game</h2>
 
-    <h2 class="title">ECS Example Game</h2>
-
-    <div id="game">
-        <div v-if="connected">
-            <%- include('chat'); -%>
-        </div>
-        <div v-else>
-            <p>Connecting...</p>
-        </div>
+  <div id="game">
+    <!-- Connecting -->
+    <div v-if="!connected">
+      <p>Connecting</p>
     </div>
 
-    <%- include('footer'); -%>
+    <div v-else-if="!signIn"><%- include('login'); -%></div>
+    <div v-else>
+      <p>Connecting...</p>
+      <%- include('chat'); -%>
+    </div>
+  </div>
 
+  <%- include('footer'); -%>
 </html>
