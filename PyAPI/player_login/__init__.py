@@ -1,24 +1,42 @@
 import logging
-
+import json
+import os
 import azure.functions as func
+from azure.cosmos import CosmosClient
+from azure.cosmos.exceptions import CosmosHttpResponseError, CosmosResourceExistsError, CosmosResourceNotFoundError
 
+with open('local.settings.json') as settings_file:
+    settings = json.load(settings_file)
+MyCosmos = CosmosClient.from_connection_string(settings['Values']['AzureCosmosDBConnectionString'])
+SkribblAIDBProxy = MyCosmos.get_database_client(settings['Values']['Database'])
+DrawingContainerProxy = SkribblAIDBProxy.get_container_client(settings['Values']['DrawingsContainer'])
+PlayerContainerProxy = SkribblAIDBProxy.get_container_client(settings['Values']['PlayersContainer'])
 
-def main(req: func.HttpRequest) -> func.HttpResponse:
-    logging.info('Python HTTP trigger function processed a request.')
+def login_player(input_data):
+    username = input_data.get("username")
+    password = input_data.get("password")
 
-    name = req.params.get('name')
-    if not name:
-        try:
-            req_body = req.get_json()
-        except ValueError:
-            pass
-        else:
-            name = req_body.get('name')
+    match_found = False
 
-    if name:
-        return func.HttpResponse(f"Hello, {name}. This HTTP triggered function executed successfully.")
+    for item in PlayerContainerProxy.read_all_items():
+        if item["username"] == username and item["password"] == password:
+            match_found = True
+            break
+
+    if match_found:
+        return {"result": True, "msg": "OK"}
     else:
-        return func.HttpResponse(
-             "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response.",
-             status_code=200
-        )
+        return {"result": False, "msg": "Username or password incorrect"}
+   
+def main(req: func.HttpRequest) -> func.HttpResponse:
+    input = req.get_json()
+    logging.info('Request to log in a player.')
+    try:
+        
+        result = login_player(input)
+        if result["result"]:
+            return func.HttpResponse(json.dumps(result), status_code=200, mimetype="application/json")
+        else:
+            return func.HttpResponse(json.dumps(result), status_code=400, mimetype="application/json")
+    except Exception as e:
+        return func.HttpResponse(f"An error occurred: {str(e)}", status_code=500)
