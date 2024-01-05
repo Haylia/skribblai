@@ -8,23 +8,23 @@ var app = new Vue({
     error: null,
     messages: [],
     chatmessage: "",
-    me: { name: '', username: '', state: 0, score: 0 },
+    me: { name: "", username: "", state: 0, score: 0 },
     state: { state: false },
     players: {},
     username: "",
     password: "",
-    prompt: ""
+    prompt: "",
   },
   mounted: function () {
     connect();
   },
   methods: {
     admin(command) {
-      socket.emit('admin',command)
+      socket.emit("admin", command);
     },
     handleChat(message) {
-      const messages = document.getElementById('messages');
-      var item = document.createElement('li');
+      const messages = document.getElementById("messages");
+      var item = document.createElement("li");
       item.textContent = message;
       messages.prepend(item);
     },
@@ -37,16 +37,22 @@ var app = new Vue({
       this.chatmessage = "";
     },
     login() {
-      socket.emit("login", {username: this.username, password: this.password});
+      socket.emit("login", {
+        username: this.username,
+        password: this.password,
+      });
     },
     register() {
-      socket.emit("register", {username: this.username, password: this.password});
+      socket.emit("register", {
+        username: this.username,
+        password: this.password,
+      });
     },
     update(data) {
       this.me = data.me;
       this.state = data.state;
       this.players = data.players;
-    }
+    },
   },
 });
 
@@ -88,5 +94,15 @@ function connect() {
   //Handle state
   socket.on("state", function (state) {
     app.update(state);
+  });
+
+  socket.on("register", ({ result, message }) => {
+    if (!result) alert(message + " register failed");
+    else app.state == 0;
+  });
+  socket.on("login", ({ result, message }) => {
+    if (!result) {
+      alert(message + " loging failed");
+    } else app.state == 0;
   });
 }
