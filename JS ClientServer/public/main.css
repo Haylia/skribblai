@@ -15,16 +15,16 @@ body {
     padding-top: 10px;
     height: 100vh;
 }
-#chat { 
+#messages { 
     list-style-type: none; 
     margin: 0; 
     padding: 0; 
     overflow: auto;
     max-height: 80vh;
 }
-#chat li { 
+#messages li { 
     padding: 5px 10px; 
 }
-#chat li:nth-child(odd) { 
+#messages li:nth-child(odd) { 
     background-color: rgba(0,0,0,0.2); 
 }

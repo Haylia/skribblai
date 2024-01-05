@@ -1,0 +1,34 @@
+<div class="col">
+
+    <div class="col-sm-4 text-center">
+        <p><strong>Time Remaining:</strong></p>
+        <p>{{state.countdown}}</p>
+    </div>
+
+    <div class="col text-center">
+        <div class="player me" v-if="me.state == 1 && !submitted">
+            <input type="text" v-model="prompt" @keydown.enter="submitPrompt()" class="form-control" placeholder="Enter a prompt">
+            <br>
+            <button class="btn btn-lg btn-success" @click="submitPrompt()">Submit</button>
+        </div>
+        <div v-else>
+            <h2>Wait for others to submit...</h2>
+        </div>
+        <div v-else-if="me.state == -1">
+            <h2>You are currently spectating the game!</h2>
+        </div>
+    </div>
+</div>
+
+
+<div class="row">
+
+    <div v-for="player of players" class="col-md-2 text-center" v-if="player.name != me.name && player.state > -1">
+        <div class="player">
+            <strong>{{player.username}}</strong>
+            <p>{{player.score}}</p>
+        </div>
+
+    </div>
+</div>
+

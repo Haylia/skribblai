@@ -2,19 +2,44 @@
 <html lang="en">
   <%- include('header'); -%>
 
-  <h2 class="title">ECS Example Game</h2>
+  <h2 class="title">SkribblAI</h2>
 
   <div id="game">
-    <!-- Connecting -->
-    <div v-if="!connected">
-      <p>Connecting</p>
-    </div>
 
-    <div v-else-if="!signIn"><%- include('login'); -%></div>
-    <div v-else>
-      <p>Connecting...</p>
-      <%- include('chat'); -%>
-    </div>
+      <div class="row">
+          <div class="col">
+              <!-- Connecting -->
+              <div v-if="!connected">
+                <p>Connecting...</p>
+              </div>
+
+              <!-- Error Display -->
+              <div v-if="error" class="alert alert-danger">
+                <strong>Error: </strong> {{error}}
+              </div>
+
+              <!-- Waiting for player to join -->
+              <div v-else-if="state.state == 0">
+                <%- include('join') -%>
+              </div>
+
+              <!-- Starting game -->
+              <div v-else-if="state.state == 1">
+                <%- include('play') -%>
+              </div>
+
+
+              <!-- <div v-else>
+                <p>Connecting...</p>
+                <%- include('chat'); -%>
+              </div> -->
+          </div>
+          <div class="col-md-3" v-if="me.state > 0">
+            <input type="text" @keyup.enter="chat()" v-model="chatmessage" class="form-control" placeholder="Chat" >
+            <ul id="messages">
+            </ul>
+        </div>
+      </div>
   </div>
 
   <%- include('footer'); -%>
