@@ -33,13 +33,18 @@ def check_user(input):
     
 def send_image(input):
     # creates a unique ID for the image to be stored as a blob in the blob storage
-    blob_name=f"{input['username']}-{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
+    logging.info('TESTING')
+    # blob_name=f"{input['username']}-{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
+    blob_name = 'test' # need to change it to something else
+    logging.error(blob_name)
     logging.info('STARTING UPLOAD TO BLOB')
+    # create a blob in the container
+    blob_client = DrawingStorageProxy.get_blob_client(blob_name)
     # uploads the image to the blob storage
-    DrawingStorageProxy.upload_blob(blob_name, input['image'])
+    blob_client.upload_blob(input['image'])
     logging.info('UPLOAD TO BLOB COMPLETE')
     # url to get the image from the blob storage
-    blob_url = DrawingStorageProxy.url
+    blob_url = blob_client.url
     # store the user and the url to the image that they draw in the cosmosDB
     data = {
         'username': input['username'], 
@@ -61,8 +66,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     try:
         result = check_user(input)
         if result["result"]:
-            logging.error('works')
             send_image(input)
+            logging.error('works')
             return func.HttpResponse(json.dumps({'result': True, 'msg':'OK'}), status_code=200, mimetype="application/json")
         else:
             return func.HttpResponse(json.dumps(result), status_code=400, mimetype="application/json")

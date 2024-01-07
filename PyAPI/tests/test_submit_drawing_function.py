@@ -3,8 +3,13 @@ import requests
 import json
 import os
 import base64
+from PIL import Image
+from io import BytesIO
+import base64
 from azure.cosmos.exceptions import CosmosHttpResponseError, CosmosResourceExistsError, CosmosResourceNotFoundError
 from azure.cosmos import CosmosClient
+from azure.storage.blob import BlobServiceClient
+
 
 class TestPlayerRegisterFunction(unittest.TestCase):
     LOCAL_DEV_URL="http://localhost:7071/submit/drawing"
@@ -17,6 +22,9 @@ class TestPlayerRegisterFunction(unittest.TestCase):
     MyCosmos = CosmosClient.from_connection_string(settings['Values']['AzureCosmosDBConnectionString'])
     QuiplashDBProxy = MyCosmos.get_database_client(settings['Values']['Database'])
     PlayerContainerProxy = QuiplashDBProxy.get_container_client(settings['Values']['PlayersContainer'])
+    DrawingContainerProxy = QuiplashDBProxy.get_container_client(settings['Values']['DrawingsContainer'])
+    BlobStorage = BlobServiceClient.from_connection_string(settings['Values']['BlobStorageConnectionString'])
+    DrawingStorageProxy = BlobStorage.get_container_client("drawings")
     name = "tests/Jim.jpeg"
     cwd = os.getcwd()
 
@@ -34,3 +42,8 @@ class TestPlayerRegisterFunction(unittest.TestCase):
         response = requests.post(self.TEST_URL, data=json.dumps(self.imageSubmission))
         print(response)
         self.assertEqual(200, response.status_code)
+        blob_client = self.DrawingStorageProxy.get_blob_client('test') # need to change to the blob name
+        get_image = blob_client.download_blob().readall()
+        image_data = base64.b64decode(get_image)
+        with open('test.png', 'wb') as f:
+            f.write(image_data)
