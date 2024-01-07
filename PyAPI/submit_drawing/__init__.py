@@ -30,6 +30,22 @@ def check_user(input):
         return {"result": True, "msg": "OK"}
     else:
         return {"result": False, "msg": "Username is not in database"}
+
+def has_submitted(input):
+    username = input.get('username')
+    round_number = input.get('roundnum')
+
+    match_found = False
+
+    for item in DrawingContainerProxy.read_all_items():
+        if item['username'] == username and item['roundnum'] == round_number:
+            match_found = True
+            break
+
+    if match_found:
+        return {'result': False, 'msg': 'This player has already submitted a drawing!'}
+    else:
+        return {"result": True, "msg": "OK"}
     
 def send_image(input):
     # creates a unique ID for the image to be stored as a blob in the blob storage
@@ -63,10 +79,16 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Request to submit image.')
     try:
         result = check_user(input)
+        submitted = has_submitted(input)
         if result["result"]:
-            send_image(input)
-            logging.error('works')
-            return func.HttpResponse(json.dumps({'result': True, 'msg':'OK'}), status_code=200, mimetype="application/json")
+            logging.error(result['msg'])
+            if not submitted["result"]:
+                logging.error(submitted['msg'])
+                return func.HttpResponse(json.dumps(submitted), status_code=400, mimetype="application/json")
+            else:
+                send_image(input)
+                logging.error('works')
+                return func.HttpResponse(json.dumps({'result': True, 'msg':'OK'}), status_code=200, mimetype="application/json")
         else:
             return func.HttpResponse(json.dumps(result), status_code=400, mimetype="application/json")
     except Exception as e:
