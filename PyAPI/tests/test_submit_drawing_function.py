@@ -42,8 +42,13 @@ class TestPlayerRegisterFunction(unittest.TestCase):
         response = requests.post(self.TEST_URL, data=json.dumps(self.imageSubmission))
         print(response)
         self.assertEqual(200, response.status_code)
-        blob_client = self.DrawingStorageProxy.get_blob_client('test') # need to change to the blob name
-        get_image = blob_client.download_blob().readall()
-        image_data = base64.b64decode(get_image)
+        query = "SELECT * FROM c"
+        items = list(self.DrawingContainerProxy.query_items(query=query, enable_cross_partition_query=True))
+        image_link = items[0]['image_link']
+        get_image = requests.get(image_link)
+        content = get_image.content
+        # blob_client = self.DrawingStorageProxy.get_blob_client('test') # need to change to the blob name
+        # get_image = blob_client.download_blob().readall()
+        image_data = base64.b64decode(content)
         with open('test.png', 'wb') as f:
             f.write(image_data)

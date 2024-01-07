@@ -33,16 +33,14 @@ def check_user(input):
     
 def send_image(input):
     # creates a unique ID for the image to be stored as a blob in the blob storage
-    logging.info('TESTING')
-    # blob_name=f"{input['username']}-{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
-    blob_name = 'test' # need to change it to something else
+    time = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+    blob_name=f"{input['username']}-{time}.png"
     logging.error(blob_name)
-    logging.info('STARTING UPLOAD TO BLOB')
+    # blob_name = 'test' # need to change it to something else
     # create a blob in the container
     blob_client = DrawingStorageProxy.get_blob_client(blob_name)
     # uploads the image to the blob storage
     blob_client.upload_blob(input['image'])
-    logging.info('UPLOAD TO BLOB COMPLETE')
     # url to get the image from the blob storage
     blob_url = blob_client.url
     # store the user and the url to the image that they draw in the cosmosDB
