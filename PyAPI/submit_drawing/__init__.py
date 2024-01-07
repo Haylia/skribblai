@@ -3,12 +3,14 @@ import json
 import azure.functions as func
 from azure.cosmos import CosmosClient
 from azure.storage.blob import BlobServiceClient
+import datetime
 
 with open('local.settings.json') as settings_file:
         settings = json.load(settings_file)
-MyCosmos = CosmosClient.from_connection_string(settings['Values']['AzureCosmosDBConnectionString'])
+
 BlobStorage = BlobServiceClient.from_connection_string(settings['Values']['BlobStorageConnectionString'])
-DrawingsStorageProxy = BlobStorage.get_container_client("drawings")
+DrawingStorageProxy = BlobStorage.get_container_client("drawings")
+MyCosmos = CosmosClient.from_connection_string(settings['Values']['AzureCosmosDBConnectionString'])
 SkribblAIDBProxy = MyCosmos.get_database_client(settings['Values']['Database'])
 PlayerContainerProxy = SkribblAIDBProxy.get_container_client(settings['Values']['PlayersContainer'])
 DrawingContainerProxy = SkribblAIDBProxy.get_container_client(settings['Values']['DrawingsContainer'])
@@ -30,8 +32,21 @@ def check_user(input):
         return {"result": False, "msg": "Username is not in database"}
     
 def send_image(input):
-    # uploads the image to the blob storage account
-    pass
+    # creates a unique ID for the image to be stored as a blob in the blob storage
+    blob_name=f"{input['username']}-{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
+    logging.info('STARTING UPLOAD TO BLOB')
+    # uploads the image to the blob storage
+    DrawingStorageProxy.upload_blob(blob_name, input['image'])
+    logging.info('UPLOAD TO BLOB COMPLETE')
+    # url to get the image from the blob storage
+    blob_url = DrawingStorageProxy.url
+    # store the user and the url to the image that they draw in the cosmosDB
+    data = {
+        'username': input['username'], 
+        'roundnum': input['roundnum'], 
+        'image_link': blob_url
+        }
+    DrawingContainerProxy.create_item(data, enable_automatic_id_generation=True)
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
     """
@@ -39,12 +54,16 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     - the username of the player
     - filepath to the image to be submitted to the blob storage
     """
+    # input = {'username': 'username', 'round': 'roundnum', 'image': imageString}
+    # images need to be in base64 in order to 
     input = req.get_json()
     logging.info('Request to submit image.')
     try:
         result = check_user(input)
         if result["result"]:
-            return func.HttpResponse(json.dumps(result), status_code=200, mimetype="application/json")
+            logging.error('works')
+            send_image(input)
+            return func.HttpResponse(json.dumps({'result': True, 'msg':'OK'}), status_code=200, mimetype="application/json")
         else:
             return func.HttpResponse(json.dumps(result), status_code=400, mimetype="application/json")
     except Exception as e:
