@@ -15,8 +15,12 @@
   "license": "ECS",
   "dependencies": {
     "axios": "^1.6.4",
+    "composition-api": "^0.0.0",
     "ejs": "^3.1.6",
     "express": "^4.17.1",
-    "socket.io": "^4.3.1"
+    "socket.io": "^4.3.1",
+    "vue": "^3.4.7",
+    "vue-demi": "^0.14.6",
+    "vue-drawing-canvas": "^1.0.14"
   }
 }

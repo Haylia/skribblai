@@ -4,6 +4,11 @@
 const express = require("express");
 const app = express();
 
+// const { createApp } = require('vue');
+// const App = require('./public/App.vue');
+
+// createApp(App).mount('#canvas');
+
 //Setup socket.io
 const server = require("http").Server(app);
 const io = require("socket.io")(server);
@@ -12,7 +17,7 @@ let players = new Map();
 let playersToSockets = new Map();
 let socketsToPlayers = new Map();
 let nextPlayerNumber = 0;
-let state = { state: 0, countdown: 5 };
+let state = { state: 0, countdown: 90 };
 let timer = null;
 
 //Setup static page handling
@@ -108,26 +113,29 @@ function handleLogin(credentials, socket) {
   let username = credentials.username;
   let password = credentials.password;
 
-  // Prepare user information for login
-  const userInfo = { username, password };
-  const config = createRequestConfig("login", "/player/login", userInfo);
+  handleJoin(socket, username);
+  updateAll();
 
-  sendLogin(config)
-    .then((response) => {
-      const { result, msg } = response.data;
-      if (result) {
-        // If login is successful
-        handleJoin(socket, username);
-        updateAll();
-        socket.emit("login", { result, message: msg });
-      } else {
-        socket.emit("login", { result, message: msg });
-      }
-    })
-    .catch((error) => {
-      console.error(error);
-      socket.emit("login", false, "Error during login");
-    });
+  // Prepare user information for login
+  // const userInfo = { username, password };
+  // const config = createRequestConfig("login", "/player/login", userInfo);
+
+  // sendLogin(config)
+  //   .then((response) => {
+  //     const { result, msg } = response.data;
+  //     if (result) {
+  //       // If login is successful
+  //       handleJoin(socket, username);
+  //       updateAll();
+  //       socket.emit("login", { result, message: msg });
+  //     } else {
+  //       socket.emit("login", { result, message: msg });
+  //     }
+  //   })
+  //   .catch((error) => {
+  //     console.error(error);
+  //     socket.emit("login", false, "Error during login");
+  //   });
 }
 
 function sendLogin(config) {
@@ -151,24 +159,27 @@ function handleRegister(credentials, socket) {
   let username = credentials.username;
   let password = credentials.password;
 
-  const userInfo = { username, password };
+  handleJoin(socket, username);
+  updateAll();
 
-  sendRegister("/player/register", userInfo)
-    .then((response) => {
-      const { result, msg } = response.data;
-      if (result) {
-        // If registration is successful
-        handleJoin(socket, username);
-        updateAll();
-        socket.emit("register", { result, message: msg });
-      } else {
-        socket.emit("register", { result, message: msg });
-      }
-    })
-    .catch((error) => {
-      console.error(error);
-      socket.emit("register", false, "Error during registration");
-    });
+  // const userInfo = { username, password };
+
+  // sendRegister("/player/register", userInfo)
+  //   .then((response) => {
+  //     const { result, msg } = response.data;
+  //     if (result) {
+  //       // If registration is successful
+  //       handleJoin(socket, username);
+  //       updateAll();
+  //       socket.emit("register", { result, message: msg });
+  //     } else {
+  //       socket.emit("register", { result, message: msg });
+  //     }
+  //   })
+  //   .catch((error) => {
+  //     console.error(error);
+  //     socket.emit("register", false, "Error during registration");
+  //   });
 }
 
 function sendRegister(url, userInfo) {

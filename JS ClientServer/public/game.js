@@ -14,6 +14,34 @@ var app = new Vue({
     username: "",
     password: "",
     prompt: "",
+    initialImage: [
+      {
+        type: "dash",
+        from: {
+          x: 262,
+          y: 154,
+        },
+        coordinates: [],
+        color: "#000000",
+        width: 5,
+        fill: false,
+      },
+    ],
+    x: 0,
+    y: 0,
+    image: "",
+    eraser: false,
+    disabled: false,
+    fillShape: false,
+    line: 5,
+    color: "#000000",
+    strokeType: "dash",
+    lineCap: "square",
+    lineJoin: "miter",
+    backgroundColor: "#FFFFFF",
+    backgroundImage: null,
+    watermark: null,
+    additionalImages: [],
   },
   mounted: function () {
     connect();
@@ -52,6 +80,43 @@ var app = new Vue({
       this.me = data.me;
       this.state = data.state;
       this.players = data.players;
+    },
+    async setImage(event) {
+      let URL = window.URL;
+      this.backgroundImage = URL.createObjectURL(event.target.files[0]);
+      await this.$refs.VueCanvasDrawing.redraw();
+    },
+    async setWatermarkImage(event) {
+      let URL = window.URL;
+      this.watermark = {
+        type: "Image",
+        source: URL.createObjectURL(event.target.files[0]),
+        x: 0,
+        y: 0,
+        imageStyle: {
+          width: 600,
+          height: 400,
+        },
+      };
+      await this.$refs.VueCanvasDrawing.redraw();
+    },
+    getCoordinate(event) {
+      let coordinates = this.$refs.VueCanvasDrawing.getCoordinates(event);
+      this.x = coordinates.x;
+      this.y = coordinates.y;
+    },
+    getStrokes() {
+      window.localStorage.setItem(
+        "vue-drawing-canvas",
+        JSON.stringify(this.$refs.VueCanvasDrawing.getAllStrokes())
+      );
+      alert(
+        "Strokes saved, reload your browser to see the canvas with previously saved image"
+      );
+    },
+    removeSavedStrokes() {
+      window.localStorage.removeItem("vue-drawing-canvas");
+      alert("Strokes cleared from local storage");
     },
   },
 });
