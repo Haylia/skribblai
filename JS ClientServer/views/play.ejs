@@ -6,10 +6,22 @@
     </div>
 
     <div class="col text-center">
-        <div class="player me" v-if="me.state == 1 && !submitted">
-            <input type="text" v-model="prompt" @keydown.enter="submitPrompt()" class="form-control" placeholder="Enter a prompt">
-            <br>
-            <button class="btn btn-lg btn-success" @click="submitPrompt()">Submit</button>
+        <div class="player me" v-if="me.state == 1">
+
+            <div id="canvas">
+                <div id="toolbar">
+                    <h1>Draw</h1>
+                    <label for="stroke">Stroke</label>
+                    <input id="stroke" name='stroke' type="color">
+                    <label for="lineWidth">Line Width</label>
+                    <input id="lineWidth" name='lineWidth' type="number" pattern="[0-9]*" inputmode="numeric" value="5">
+                    <button id="clear">Clear</button>
+                </div>
+                <br>
+                <div class="drawing-board">
+                    <canvas id="drawing-board"></canvas>
+                </div>
+            </div>
         </div>
         <div v-else>
             <h2>Wait for others to submit...</h2>
