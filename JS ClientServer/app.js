@@ -12,7 +12,7 @@ let players = new Map();
 let playersToSockets = new Map();
 let socketsToPlayers = new Map();
 let nextPlayerNumber = 0;
-let state = { state: 0, countdown: 90 };
+let state = { state: 0, countdown: 10 };
 let timer = null;
 
 //Setup static page handling

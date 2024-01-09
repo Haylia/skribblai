@@ -28,6 +28,11 @@
                 <%- include('play') -%>
               </div>
 
+              <!-- Game over -->
+              <div v-else-if="state.state == 2">
+                <%- include('end') -%>
+              </div>
+
 
               <!-- <div v-else>
                 <p>Connecting...</p>

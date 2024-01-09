@@ -15,6 +15,7 @@ var app = new Vue({
     username: "",
     password: "",
     prompt: "",
+    image: "",
   },
   mounted: function () {
     connect();
@@ -108,6 +109,8 @@ function setup_canvas() {
 
       ctx.lineTo(e.clientX - (canvasOffsetX/2.05), e.clientY - canvasOffsetY);
       ctx.stroke();
+
+      app.image = canvas.toDataURL();
   }
 
   canvas.addEventListener('mousedown', (e) => {
