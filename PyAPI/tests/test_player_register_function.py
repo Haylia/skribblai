@@ -1,19 +1,28 @@
 import unittest
 import requests
 import json
+import os
 from azure.cosmos.exceptions import CosmosHttpResponseError, CosmosResourceExistsError, CosmosResourceNotFoundError
 from azure.cosmos import CosmosClient
 
 class TestPlayerRegisterFunction(unittest.TestCase):
     LOCAL_DEV_URL="http://localhost:7071/player/register"
-    PUBLIC_URL="https://coursework-ajwl1g21-2324.azurewebsites.net/player/register?code=HROQTPoliBxabW1XSFYY90DaJU5-KgFvAGqxA93B5LK2AzFuO6Mdpw=="
-    TEST_URL = LOCAL_DEV_URL
+    PUBLIC_URL="https://skribblai-ajwl1g21-2324.azurewebsites.net/player/register?code=DrcOLAi96xZ9HD0oqVw7JiqarME0TmHUauR7d0CCBBLLAzFu9ejEQg=="
+    TEST_URL = PUBLIC_URL
+
+# connection_string = os.environ['AzureCosmosDBConnectionString']
+#  client = CosmosClient.from_connection_string(connection_string)
 
     with open('local.settings.json') as settings_file:
         settings = json.load(settings_file)
+    # cosmosConnectionString = os.environ['AzureCosmosDBConnectionString']
     MyCosmos = CosmosClient.from_connection_string(settings['Values']['AzureCosmosDBConnectionString'])
     QuiplashDBProxy = MyCosmos.get_database_client(settings['Values']['Database'])
     PlayerContainerProxy = QuiplashDBProxy.get_container_client(settings['Values']['PlayersContainer'])
+    # cosmosConnectionString = os.environ['AzureCosmosDBConnectionString']
+    # MyCosmos = CosmosClient.from_connection_string(cosmosConnectionString)
+    # QuiplashDBProxy = MyCosmos.get_database_client(os.environ['Database'])
+    # PlayerContainerProxy = QuiplashDBProxy.get_container_client(os.environ['PlayersContainer'])
 
     def test_add_player_valid(self):
         user = {"username": "testname6", "password": "thisIsATestPassword"}

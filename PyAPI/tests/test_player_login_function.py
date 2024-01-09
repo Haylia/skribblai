@@ -7,9 +7,9 @@ from azure.cosmos import CosmosClient
 class TestPlayerRegisterFunction(unittest.TestCase):
     LOCAL_DEV_URL="http://localhost:7071/player/login"
     LOCAL_DEV_REGISTER="http://localhost:7071/player/register"
-    PUBLIC_URL="https://coursework-ajwl1g21-2324.azurewebsites.net/player/login?code=HROQTPoliBxabW1XSFYY90DaJU5-KgFvAGqxA93B5LK2AzFuO6Mdpw=="
-    PUBLIC_REGISTER_URL="https://coursework-ajwl1g21-2324.azurewebsites.net/player/register?code=HROQTPoliBxabW1XSFYY90DaJU5-KgFvAGqxA93B5LK2AzFuO6Mdpw=="
-    TEST_URL = LOCAL_DEV_URL
+    PUBLIC_URL="https://skribblai-ajwl1g21-2324.azurewebsites.net/player/login?code=uBl1SXjrNTQDs3BvcjRUHqHP8OKKaBpjpWn-3BdvRP0XAzFuDMtlwQ=="
+    PUBLIC_REGISTER_URL="https://skribblai-ajwl1g21-2324.azurewebsites.net/player/register?code=DrcOLAi96xZ9HD0oqVw7JiqarME0TmHUauR7d0CCBBLLAzFu9ejEQg=="
+    TEST_URL = PUBLIC_URL
 
     with open('local.settings.json') as settings_file:
         settings = json.load(settings_file)
@@ -19,10 +19,10 @@ class TestPlayerRegisterFunction(unittest.TestCase):
     
     def create_items(self):
         user = {"username": "testname", "password": "thisIsATestPassword"}
-        response = requests.post(self.LOCAL_DEV_REGISTER, data=json.dumps(user))
+        response = requests.post(self.PUBLIC_REGISTER_URL, data=json.dumps(user))
 
         user2 = {"username": "testname2", "password": "Passwordtest23"}
-        response = requests.post(self.LOCAL_DEV_REGISTER, data=json.dumps(user2))
+        response = requests.post(self.PUBLIC_REGISTER_URL, data=json.dumps(user2))
 
     def test_login_valid(self):
         self.create_items()

@@ -4,16 +4,17 @@ import azure.functions as func
 from azure.cosmos import CosmosClient
 from azure.storage.blob import BlobServiceClient
 import datetime
+import os
 
-with open('local.settings.json') as settings_file:
-        settings = json.load(settings_file)
+# with open('local.settings.json') as settings_file:
+#         settings = json.load(settings_file)
 
-BlobStorage = BlobServiceClient.from_connection_string(settings['Values']['BlobStorageConnectionString'])
+BlobStorage = BlobServiceClient.from_connection_string(os.environ['BlobStorageConnectionString'])
 DrawingStorageProxy = BlobStorage.get_container_client("drawings")
-MyCosmos = CosmosClient.from_connection_string(settings['Values']['AzureCosmosDBConnectionString'])
-SkribblAIDBProxy = MyCosmos.get_database_client(settings['Values']['Database'])
-PlayerContainerProxy = SkribblAIDBProxy.get_container_client(settings['Values']['PlayersContainer'])
-DrawingContainerProxy = SkribblAIDBProxy.get_container_client(settings['Values']['DrawingsContainer'])
+MyCosmos = CosmosClient.from_connection_string(os.environ['AzureCosmosDBConnectionString'])
+SkribblAIDBProxy = MyCosmos.get_database_client(os.environ['Database'])
+PlayerContainerProxy = SkribblAIDBProxy.get_container_client(os.environ['PlayersContainer'])
+DrawingContainerProxy = SkribblAIDBProxy.get_container_client(os.environ['DrawingsContainer'])
 
 def check_user(input):
     # Checking if the user exists in the CosmosDB player container
@@ -63,7 +64,8 @@ def send_image(input):
     data = {
         'username': input['username'], 
         'roundnum': input['roundnum'], 
-        'image_link': blob_url
+        'image_link': blob_url,
+        'prompt': input['prompt']
         }
     DrawingContainerProxy.create_item(data, enable_automatic_id_generation=True)
 

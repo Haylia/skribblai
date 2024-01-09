@@ -32,18 +32,17 @@ def check_user(input):
     else:
         return {"result": False, "msg": "Username is not in database"}
     
-def get_image(input):
+def get_prompt(input):
     username = input.get("username")
     roundnum = input.get("roundnum")
-    prompt = input.get("prompt")
     # SELECT c.image_link FROM c WHERE c.username = {username} AND c.round
     query = f"SELECT * FROM c WHERE c.username = '{username}' AND c.roundnum = '{roundnum}'"
     # query = "SELECT * FROM c WHERE c.username=@username AND c.roundnum = @roundnum"
 
     blobImage = list(DrawingContainerProxy.query_items(query, enable_cross_partition_query=True))
-    link = blobImage[0].get('image_link')
-    logging.error(link)
-    return link
+    prompt = blobImage[0].get('prompt')
+    logging.error(prompt)
+    return prompt
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
     """
@@ -58,7 +57,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     try:
         result = check_user(input)
         if result["result"]:
-            data = get_image(input)
+            data = get_prompt(input)
             logging.error('works')
             return func.HttpResponse(json.dumps(data), status_code=200, mimetype="application/json")
         else:

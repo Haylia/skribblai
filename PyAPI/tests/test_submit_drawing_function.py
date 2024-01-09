@@ -3,7 +3,7 @@ import requests
 import json
 import os
 import base64
-from PIL import Image
+# from PIL import Image
 from io import BytesIO
 import base64
 from azure.cosmos.exceptions import CosmosHttpResponseError, CosmosResourceExistsError, CosmosResourceNotFoundError
@@ -14,8 +14,9 @@ from azure.storage.blob import BlobServiceClient
 class TestPlayerRegisterFunction(unittest.TestCase):
     LOCAL_DEV_URL="http://localhost:7071/submit/drawing"
     LOCAL_DEV_REGISTER="http://localhost:7071/player/register"
-    PUBLIC_URL="https://coursework-ajwl1g21-2324.azurewebsites.net/player/register?code=HROQTPoliBxabW1XSFYY90DaJU5-KgFvAGqxA93B5LK2AzFuO6Mdpw=="
-    TEST_URL = LOCAL_DEV_URL
+    PUBLIC_REGISTER_URL = "https://skribblai-ajwl1g21-2324.azurewebsites.net/player/register?code=DrcOLAi96xZ9HD0oqVw7JiqarME0TmHUauR7d0CCBBLLAzFu9ejEQg=="
+    PUBLIC_URL="https://skribblai-ajwl1g21-2324.azurewebsites.net/submit/drawing?code=Wn0EL94ahQmDHf1d2WriBxNYcgYGlIbc6TV7mEvsn4DOAzFuAmfrzg=="
+    TEST_URL = PUBLIC_URL
 
     with open('local.settings.json') as settings_file:
         settings = json.load(settings_file)
@@ -31,11 +32,11 @@ class TestPlayerRegisterFunction(unittest.TestCase):
     with open(os.path.join(cwd, name), "rb") as data:
         image = data.read()
         image_base64 = base64.b64encode(image).decode('utf-8')
-        imageSubmission = {"username": "testname6", "roundnum": "1", "image": image_base64}
+        imageSubmission = {"username": "testname6", "roundnum": "1", "image": image_base64, 'prompt':'Jim'}
 
     def add_player_valid(self):
         user = {"username": "testname6", "password": "thisIsATestPassword"}
-        response = requests.post(self.LOCAL_DEV_REGISTER, data=json.dumps(user))
+        response = requests.post(self.PUBLIC_REGISTER_URL, data=json.dumps(user))
 
     def test_Image_Submit(self):
         self.add_player_valid()

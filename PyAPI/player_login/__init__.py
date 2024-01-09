@@ -5,12 +5,12 @@ import azure.functions as func
 from azure.cosmos import CosmosClient
 from azure.cosmos.exceptions import CosmosHttpResponseError, CosmosResourceExistsError, CosmosResourceNotFoundError
 
-with open('local.settings.json') as settings_file:
-    settings = json.load(settings_file)
-MyCosmos = CosmosClient.from_connection_string(settings['Values']['AzureCosmosDBConnectionString'])
-SkribblAIDBProxy = MyCosmos.get_database_client(settings['Values']['Database'])
-DrawingContainerProxy = SkribblAIDBProxy.get_container_client(settings['Values']['DrawingsContainer'])
-PlayerContainerProxy = SkribblAIDBProxy.get_container_client(settings['Values']['PlayersContainer'])
+# with open('local.settings.json') as settings_file:
+#     settings = json.load(settings_file)
+MyCosmos = CosmosClient.from_connection_string(os.environ['AzureCosmosDBConnectionString'])
+SkribblAIDBProxy = MyCosmos.get_database_client(os.environ['Database'])
+DrawingContainerProxy = SkribblAIDBProxy.get_container_client(os.environ['DrawingsContainer'])
+PlayerContainerProxy = SkribblAIDBProxy.get_container_client(os.environ['PlayersContainer'])
 
 def login_player(input_data):
     username = input_data.get("username")
