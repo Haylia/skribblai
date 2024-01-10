@@ -15,6 +15,9 @@ let socketsToPlayers = new Map();
 let nextPlayerNumber = 0;
 let state = { state: 0, countdown: 10 };
 let timer = null;
+let round = 0;
+let total_rounds = null;
+let prompts_ready = false;
 
 //Setup static page handling
 app.set("view engine", "ejs");
@@ -200,16 +203,17 @@ function handleAdmin(player, action) {
     return;
   }
 
-  if (action == "start" && state.state == 0) {
-    startGame();
+  if (action == "start" && state.state == 0 && round == 0) {
+    nextRound();
+    total_rounds = players.size;
   } else {
     console.log("Unknown admin action: " + action);
   }
 }
 
 //Start the game
-function startGame() {
-  console.log("Game starting");
+function nextRound() {
+  console.log("Round starting");
   announce("Let the games begin");
 
   //Prepare all players
@@ -235,19 +239,30 @@ function tickGame() {
   } else {
     clearInterval(timer);
     timer = null;
-    endGame();
+    endRound();
   }
   updateAll();
 }
 
 //End game -> 2
-function endGame() {
+function endRound() {
   state.state = 2;
-  console.log("Game ending");
-  for (let [playerNumber, player] of players) {
-    if (player.score < 100) {
-      console.log("Time up for " + player.username);
-    }
+  state.countdown = 10;
+  console.log("Round ending");
+  timer = setInterval(() => {
+    waitForPrompts();
+  }, 1000);
+}
+
+function waitForPrompts() {
+  if (prompts_ready) {
+    clearInterval(timer);
+    timer = null;
+    prompts_ready = false;
+    nextRound();
+    updateAll();
+  } else {
+    prompts_ready = true;
   }
 }
 

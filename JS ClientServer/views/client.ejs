@@ -8,18 +8,18 @@
 
       <div class="row">
           <div class="col">
-              <!-- Connecting -->
-              <div v-if="!connected">
-                <p>Connecting...</p>
-              </div>
-
               <!-- Error Display -->
               <div v-if="error" class="alert alert-danger">
                 <strong>Error: </strong> {{error}}
               </div>
 
+              <!-- Connecting -->
+              <div v-if="!connected">
+                <p>Connecting...</p>
+              </div>
+
               <!-- Waiting for player to join -->
-              <div v-if="state.state == 0">
+              <div v-else-if="state.state == 0">
                 <%- include('join') -%>
               </div>
 
@@ -33,11 +33,6 @@
                 <%- include('end') -%>
               </div>
 
-
-              <!-- <div v-else>
-                <p>Connecting...</p>
-                <%- include('chat'); -%>
-              </div> -->
           </div>
           <div class="col-md-3" v-if="me.state > 0">
             <input type="text" @keyup.enter="chat()" v-model="chatmessage" class="form-control" placeholder="Chat" >

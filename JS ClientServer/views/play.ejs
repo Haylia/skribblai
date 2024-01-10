@@ -10,7 +10,7 @@
 
             <div id="canvas">
                 <div id="toolbar">
-                    <h1>Draw</h1>
+                    <h1>Draw: <strong>{{prompt}}</strong></h1>
                     <label for="stroke">Stroke</label>
                     <input id="stroke" name='stroke' type="color">
                     <label for="lineWidth">Line Width</label>
@@ -35,7 +35,8 @@
 
 <div class="row">
 
-    <div v-for="player of players" class="col-md-2 text-center" v-if="player.name != me.name && player.state > -1">
+    <div v-for="player of players" class="col-md-2 text-center">
+        <br>
         <div class="player">
             <strong>{{player.username}}</strong>
             <p>{{player.score}}</p>

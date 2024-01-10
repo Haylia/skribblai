@@ -58,9 +58,10 @@ var app = new Vue({
         try{
           setup_canvas();
           this.canvas_setup = true;
-        } catch (e) {
-          console.log(e);
-        }
+        } catch (e) {}
+      }
+      if (this.state.state == 2) {
+        this.canvas_setup = false;
       }
     },
   },
