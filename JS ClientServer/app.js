@@ -279,6 +279,7 @@ async function getAccessToken() {
 }
 
 function getPrompt(base64image, accessToken, playerNumber) {
+  // Calls the API to the AI to get the prompt for the image
   var payload = {
     "instances": [
     {
@@ -310,7 +311,6 @@ function getPrompt(base64image, accessToken, playerNumber) {
       return;
     }
 
-    console.log(res.statusCode, body);
     let thePrompt = body['predictions'][0];
     // create the chain
     let pair = {
@@ -327,7 +327,6 @@ function getPrompt(base64image, accessToken, playerNumber) {
       chains.set(playerNumber, chain);
     }
 
-    console.log(chains);
   });
 }
 
