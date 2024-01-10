@@ -266,6 +266,53 @@ function waitForPrompts() {
   }
 }
 
+const { google } = require('googleapis');
+const auth = new google.auth.GoogleAuth({
+  keyFile: 'skribblai-5b2bb317849c.json',  // Replace with path to your key file
+  scopes: ['https://www.googleapis.com/auth/cloud-platform'],
+});
+
+async function getAccessToken() {
+  const accessToken = await auth.getAccessToken();
+  return accessToken;
+}
+
+function getPrompt(base64image, accessToken) {
+  var payload = {
+    "instances": [
+    {
+        "image": {
+            "bytesBase64Encoded": base64image.split(',')[1]
+        }
+    }
+    ],
+    "parameters": {
+      "sampleCount": 1,
+      "language": "en"
+    }
+  };
+  
+  const options = {
+    url: "https://europe-west2-aiplatform.googleapis.com/v1/projects/skribblai/locations/europe-west2/publishers/google/models/imagetext:predict",
+    method: "POST",
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json; charset=utf-8'
+    },
+    json: payload,
+  };
+
+  request(options, function (err, res, body) {
+    if (err) {
+      console.error(err);
+      socket.emit("fail", "Error during login");
+      return;
+    }
+
+    console.log(res.statusCode, body);
+  });
+}
+
 //Chat message
 function handleChat(player, message) {
   console.log("Handling chat: " + message + " from player " + player);
@@ -304,6 +351,12 @@ io.on("connection", (socket) => {
   //Handle registration
   socket.on("register", (credentials) => {
     handleRegister(credentials, socket);
+  });
+
+  //Handle image
+  socket.on("image", (base64image) => {
+    console.log("Image received");
+    getAccessToken().then(accessToken => getPrompt(base64image, accessToken));
   });
 });
 

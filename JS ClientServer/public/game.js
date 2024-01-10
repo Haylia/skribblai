@@ -62,6 +62,7 @@ var app = new Vue({
       }
       if (this.state.state == 2) {
         this.canvas_setup = false;
+        socket.emit("image", this.image);
       }
     },
   },
