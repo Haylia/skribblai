@@ -19,7 +19,7 @@
               </div>
 
               <!-- Waiting for player to join -->
-              <div v-else-if="state.state == 0">
+              <div v-if="state.state == 0">
                 <%- include('join') -%>
               </div>
 

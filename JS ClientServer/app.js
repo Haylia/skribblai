@@ -107,7 +107,7 @@ function handleRegister(credentials, socket) {
   request(options, function (err, res, body) {
     if (err) {
       console.error(err);
-      socket.emit("register", false, "Error during registration");
+      socket.emit("fail", "Error during registration");
       return;
     }
 
@@ -121,10 +121,7 @@ function handleRegister(credentials, socket) {
         message: "Registration successful",
       });
     } else {
-      socket.emit("register", {
-        result: false,
-        message: body ? body.msg : "Registration failed",
-      });
+      socket.emit("fail", body ? body.msg : "Registration failed");
     }
   });
 }
@@ -157,7 +154,7 @@ function handleLogin(credentials, socket) {
   request(options, function (err, res, body) {
     if (err) {
       console.error(err);
-      socket.emit("login", false, "Error during login");
+      socket.emit("fail", "Error during login");
       return;
     }
 
@@ -171,10 +168,7 @@ function handleLogin(credentials, socket) {
         message: "Login successful",
       });
     } else {
-      socket.emit("login", {
-        result: false,
-        message: body ? body.msg : "Login failed",
-      });
+      socket.emit("fail",  body ? body.msg : "Login failed");
     }
   });
 }
