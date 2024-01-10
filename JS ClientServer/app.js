@@ -8,6 +8,7 @@ const app = express();
 const server = require("http").Server(app);
 const io = require("socket.io")(server);
 
+const request = require("request"); // added request
 let players = new Map();
 let playersToSockets = new Map();
 let socketsToPlayers = new Map();
@@ -28,9 +29,9 @@ app.get("/display", (req, res) => {
   res.render("display");
 });
 
-// URL of the backend API
+// URL of the backend API ( might not need this)
 const BACKEND_ENDPOINT = process.env.BACKEND || "http://localhost:8181";
-const axios = require("axios").create({ baseURL: BACKEND_ENDPOINT });
+//const axios = require("axios").create({ baseURL: BACKEND_ENDPOINT });
 
 //Start the server
 function startServer() {
@@ -77,108 +78,105 @@ function handleJoin(socket, username) {
   socketsToPlayers.set(socket, nextPlayerNumber);
 }
 
-//Handle login ( this login function should work but when i try with the excutable form CW login doesnt work but Register work
-//                so  will try again with our deployment URL if done)
+//Handle registration                     ( The below function works without the url, u can use this for easy login or register)
+// function handleRegister(credentials, socket) {
+//   let username = credentials.username;
+//   let password = credentials.password;
+
+//   handleJoin(socket, username);
+//   updateAll();
+// }
+function handleRegister(credentials, socket) {
+  let username = credentials.username;
+  let password = credentials.password;
+
+  var payload = {
+    username: username,
+    password: password,
+  };
+
+  const options = {
+    url: "https://skribblai-ajwl1g21-2324.azurewebsites.net/player/register?code=DrcOLAi96xZ9HD0oqVw7JiqarME0TmHUauR7d0CCBBLLAzFu9ejEQg==",
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    json: payload,
+  };
+
+  request(options, function (err, res, body) {
+    if (err) {
+      console.error(err);
+      socket.emit("register", false, "Error during registration");
+      return;
+    }
+
+    console.log(res.statusCode, body);
+
+    if (body && body.result === true) {
+      handleJoin(socket, username);
+      updateAll();
+      socket.emit("register", {
+        result: true,
+        message: "Registration successful",
+      });
+    } else {
+      socket.emit("register", {
+        result: false,
+        message: body ? body.msg : "Registration failed",
+      });
+    }
+  });
+}
+// handle login   ( The below function works without the url, u can use this for easy login or register)
 // function handleLogin(credentials, socket) {
 //   let username = credentials.username;
 //   let password = credentials.password;
 
-//   const userInfo = { username, password };
-
-//   sendLogin("/player/login", userInfo)
-//     .then((response) => {
-//       const { result, msg } = response.data;
-//       if (result) {
-//         handleJoin(socket, username);
-//         updateAll();
-//         socket.emit("login", { result, message: msg });
-//       } else {
-//         socket.emit("login", { result, message: msg });
-//       }
-//     })
-//     .catch((error) => {
-//       console.error(error);
-//       socket.emit("login", false, "Error during login");
-//     });
-// }
-// function sendLogin(url, userInfo) {
-//   return axios.get(url, userInfo);
+//   handleJoin(socket, username);
+//   updateAll()
 // }
 function handleLogin(credentials, socket) {
   let username = credentials.username;
   let password = credentials.password;
 
-  handleJoin(socket, username);
-  updateAll()
-
-  // // Prepare user information for login
-  // const userInfo = { username, password };
-  // const config = createRequestConfig("login", "/player/login", userInfo);
-
-  // sendLogin(config)
-  //   .then((response) => {
-  //     const { result, msg } = response.data;
-  //     if (result) {
-  //       // If login is successful
-  //       handleJoin(socket, username);
-  //       updateAll();
-  //       socket.emit("login", { result, message: msg });
-  //     } else {
-  //       socket.emit("login", { result, message: msg });
-  //     }
-  //   })
-  //   .catch((error) => {
-  //     console.error(error);
-  //     socket.emit("login", false, "Error during login");
-  //   });
-}
-
-function sendLogin(config) {
-  return axios.request(config);
-}
-
-function createRequestConfig(act, url, userInfo) {
-  return {
-    method: determineMethod(act),
-    url: `http://localhost:8181${url}`, // CHANGE it url to deployment url
-    headers: { "Content-Type": "text/plain" },
-    data: userInfo,
+  var payload = {
+    username: username,
+    password: password,
   };
-}
 
-function determineMethod(act) {
-  return act === "login" ? "get" : "post";
-}
-//Handle registration
-function handleRegister(credentials, socket) {
-  let username = credentials.username;
-  let password = credentials.password;
+  const options = {
+    url: "https://skribblai-ajwl1g21-2324.azurewebsites.net/player/login?code=uBl1SXjrNTQDs3BvcjRUHqHP8OKKaBpjpWn-3BdvRP0XAzFuDMtlwQ==",
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    json: payload,
+  };
 
-  handleJoin(socket, username);
-  updateAll();
+  request(options, function (err, res, body) {
+    if (err) {
+      console.error(err);
+      socket.emit("login", false, "Error during login");
+      return;
+    }
 
-  // const userInfo = { username, password };
+    console.log(res.statusCode, body);
 
-  // sendRegister("/player/register", userInfo)
-  //   .then((response) => {
-  //     const { result, msg } = response.data;
-  //     if (result) {
-  //       // If registration is successful
-  //       handleJoin(socket, username);
-  //       updateAll();
-  //       socket.emit("register", { result, message: msg });
-  //     } else {
-  //       socket.emit("register", { result, message: msg });
-  //     }
-  //   })
-  //   .catch((error) => {
-  //     console.error(error);
-  //     socket.emit("register", false, "Error during registration");
-  //   });
-}
-
-function sendRegister(url, userInfo) {
-  return axios.post(url, userInfo);
+    if (body && body.result === true) {
+      handleJoin(socket, username);
+      updateAll();
+      socket.emit("login", {
+        result: true,
+        message: "Login successful",
+      });
+    } else {
+      socket.emit("login", {
+        result: false,
+        message: body ? body.msg : "Login failed",
+      });
+    }
+  });
 }
 
 //Update state of all players
