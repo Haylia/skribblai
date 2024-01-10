@@ -18,6 +18,7 @@ let timer = null;
 let round = 0;
 let total_rounds = null;
 let prompts_ready = false;
+let chains = new Map();
 
 //Setup static page handling
 app.set("view engine", "ejs");
@@ -277,7 +278,7 @@ async function getAccessToken() {
   return accessToken;
 }
 
-function getPrompt(base64image, accessToken) {
+function getPrompt(base64image, accessToken, playerNumber) {
   var payload = {
     "instances": [
     {
@@ -310,7 +311,61 @@ function getPrompt(base64image, accessToken) {
     }
 
     console.log(res.statusCode, body);
+    let thePrompt = body['predictions'][0];
+    // create the chain
+    let pair = {
+      image: base64image,
+      thePrompt: thePrompt,
+    }
+    // check if the user chain exists in the chains
+    if (chains.has(playerNumber)) {
+      let chain = chains.get(playerNumber);
+      chain.push(pair);
+    } else {
+      let chain = new Array();
+      chain.push(pair);
+      chains.set(playerNumber, chain);
+    }
+
+    console.log(chains);
   });
+}
+
+function send_to_database(image, username, thePrompt) {
+  // stores the image and the prompt into the database
+  const url = "https://skribblai-ajwl1g21-2324.azurewebsites.net/submit/drawing?code=Wn0EL94ahQmDHf1d2WriBxNYcgYGlIbc6TV7mEvsn4DOAzFuAmfrzg==";
+  var payload = {
+    username: username,
+    roundnum: round,
+    image: image,
+    prompt: thePrompt
+  }
+
+  const options = {
+    url: url,
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    json: payload,
+  };
+
+  request(options, function (err, res, body) {
+    if (err) {
+      console.error(err);
+      socket.emit("fail", "Error during login");
+      return;
+    }
+
+    console.log(res.statusCode, body);
+
+    if (body && body.result === true) {
+      console.log("Submitted image");
+      
+    } else {
+      socket.emit("fail", body ? body.msg : "login failed");
+    }
+  })
 }
 
 //Chat message
@@ -356,7 +411,8 @@ io.on("connection", (socket) => {
   //Handle image
   socket.on("image", (base64image) => {
     console.log("Image received");
-    getAccessToken().then(accessToken => getPrompt(base64image, accessToken));
+    let playerNum = socketsToPlayers.get(socket);
+    getAccessToken().then(accessToken => getPrompt(base64image, accessToken, playerNum));
   });
 });
 
