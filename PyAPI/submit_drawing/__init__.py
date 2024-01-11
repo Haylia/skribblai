@@ -53,7 +53,6 @@ def send_image(input):
     time = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     blob_name=f"{input['username']}-{time}.png"
     logging.error(blob_name)
-    # blob_name = 'test' # need to change it to something else
     # create a blob in the container
     blob_client = DrawingStorageProxy.get_blob_client(blob_name)
     # uploads the image to the blob storage

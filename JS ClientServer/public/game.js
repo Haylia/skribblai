@@ -16,6 +16,16 @@ var app = new Vue({
     password: "",
     prompt: "",
     image: "",
+    chains: new Map(),
+    numChains: 0,
+    currentChain: [],
+    chainNumber: 0,
+    image1: "",
+    prompt1: "",
+    image2: "",
+    prompt2: "",
+    image3: "",
+    prompt3: "",
   },
   mounted: function () {
     connect();
@@ -65,6 +75,54 @@ var app = new Vue({
         socket.emit("image", this.image);
       }
     },
+    show_chains(chains) {
+      this.chains = chains;
+      // Gets the first chain
+      this.currentChain = this.chains.get(1);
+      this.chainNumber = 1;
+      this.numChains = this.chains.size;
+      console.log(this.numChains)
+      this.load_chain();
+    },
+    load_chain() {
+      this.currentChain = this.chains.get(this.chainNumber);
+      this.image1 = this.currentChain[0]["image"];
+      this.prompt1 = this.currentChain[0]["thePrompt"];
+      this.image2 = this.currentChain[1]["image"];
+      this.prompt2 = this.currentChain[1]["thePrompt"];
+      this.image3 = this.currentChain[2]["image"];
+      this.prompt3 = this.currentChain[2]["thePrompt"];
+    },
+    next_chain() {
+      if (this.chainNumber < this.numChains) {
+        this.chainNumber++;
+        this.load_chain();
+      }
+    },
+    previous_chain() {
+      if (this.chainNumber > 1) {
+        this.chainNumber--;
+        this.load_chain();
+      }
+    },
+    restart() {
+      socket.emit("restart");
+    },
+    reset() {
+      this.chains.clear();
+      this.currentChain = [];
+      this.numChains = 0;
+      this.chainNumber = 0;
+      this.prompt = "";
+      this.prompt1 = "";
+      this.prompt2 = "";
+      this.prompt3 = "";
+      this.image = "";
+      this.image1 = "";
+      this.image2 = "";
+      this.image3 = "";
+      this.canvas_setup = false;
+    }
   },
 });
 
@@ -170,13 +228,36 @@ function connect() {
     app.update(state);
   });
 
+  //Handle prompt update
+  socket.on("prompt", function (prompt) {
+    app.prompt = prompt;
+  });
+
+  //Handle receiving chains
+  socket.on("chain", function(chains) {
+    var newMap = new Map(JSON.parse(chains));
+    console.log(newMap);
+    app.show_chains(newMap);
+  });
+
+  socket.on("previous_chain", function() {
+    app.previous_chain();
+  });
+
+  socket.on("restart", function() {
+    app.reset();
+  });
+  
+  socket.on("next_chain", function() {
+    app.next_chain();
+  });
   socket.on("register", ({ result, message }) => {
     if (!result) alert(message + " register failed");
     else app.state == 0;
   });
   socket.on("login", ({ result, message }) => {
     if (!result) {
-      alert(message + " loging failed");
+      alert(message + " login failed");
     } else app.state == 0;
   });
 }

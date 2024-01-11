@@ -13,10 +13,9 @@ let players = new Map();
 let playersToSockets = new Map();
 let socketsToPlayers = new Map();
 let nextPlayerNumber = 0;
-let state = { state: 0, countdown: 10 };
+let state = { state: 0, countdown: 45 };
 let timer = null;
 let round = 0;
-let total_rounds = null;
 let prompts_ready = false;
 let chains = new Map();
 
@@ -206,30 +205,44 @@ function handleAdmin(player, action) {
 
   if (action == "start" && state.state == 0 && round == 0) {
     nextRound();
-    total_rounds = players.size;
-  } else {
+  } else if (action == "previous_chain") {
+    for (let [player, socket] of playersToSockets) {
+      socket.emit("previous_chain");
+    }
+  } else if (action == "next_chain") {
+    for (let [player, socket] of playersToSockets) {
+      socket.emit("next_chain");
+    }
+  }
+  
+  else {
     console.log("Unknown admin action: " + action);
   }
 }
 
 //Start the game
 function nextRound() {
-  console.log("Round starting");
-  announce("Let the games begin");
+  if (round < 3) {
+    console.log("Round starting");
+    announce("Let the games begin");
 
-  //Prepare all players
-  for (const [playerNumber, player] of players) {
-    player.state = 1;
+    //Prepare all players
+    for (const [playerNumber, player] of players) {
+      player.state = 1;
+    }
+
+    //Start the timer
+    console.log("Starting the timer: " + state.countdown);
+    timer = setInterval(() => {
+      tickGame();
+    }, 1000);
+
+    //Advance the game
+    state.state = 1;
+    round++;
+  } else {
+    endGame();
   }
-
-  //Start the timer
-  console.log("Starting the timer: " + state.countdown);
-  timer = setInterval(() => {
-    tickGame();
-  }, 1000);
-
-  //Advance the game
-  state.state = 1;
 }
 
 //Game tick
@@ -245,14 +258,43 @@ function tickGame() {
   updateAll();
 }
 
-//End game -> 2
+//End round -> 2
 function endRound() {
   state.state = 2;
-  state.countdown = 10;
+  state.countdown = 45;
   console.log("Round ending");
   timer = setInterval(() => {
     waitForPrompts();
   }, 1000);
+}
+
+//End game -> 3
+function endGame() {
+  state.state = 3;
+  console.log("Game ending");
+  announce("Game over");
+  updateAll();
+  results();
+}
+
+// Sends the chains to each player ready for displaying
+function results() {
+  // turns the Map into something that can be sent over a socket
+  let transitMap = JSON.stringify(Array.from(chains));
+  for (let [player, socket] of playersToSockets) {
+    socket.emit('chain', transitMap);
+  }
+}
+
+// Sets everything to 0 and puts everyone back to the lobby
+function restart() {
+  state.state = 0;
+  round = 0;
+  chains.clear();
+  for (let [player, socket] of playersToSockets) {
+    socket.emit("restart");
+  }
+  updateAll();
 }
 
 function waitForPrompts() {
@@ -260,10 +302,25 @@ function waitForPrompts() {
     clearInterval(timer);
     timer = null;
     prompts_ready = false;
+    for (let [playerNumber, chain] of chains) {
+      let promptNumber = round - 1;
+      let thePrompt = chain[promptNumber]["thePrompt"];
+      let nextPlayer = playerNumber + 1;
+      if (nextPlayer > players.size) {
+        nextPlayer = 1;
+      }
+      let socket = playersToSockets.get(nextPlayer);
+      socket.emit("prompt", thePrompt);
+    }
     nextRound();
     updateAll();
   } else {
     prompts_ready = true;
+    for (let [playerNumber, chain] of chains) {
+      if (chain.length != round) {
+        prompts_ready = false;
+      }
+    }
   }
 }
 
@@ -310,23 +367,37 @@ function getPrompt(base64image, accessToken, playerNumber) {
       socket.emit("fail", "Error during login");
       return;
     }
-
-    let thePrompt = body['predictions'][0];
-    // create the chain
-    let pair = {
-      image: base64image,
-      thePrompt: thePrompt,
+    try{
+      let thePrompt = body['predictions'][0];
+      // create the chain
+      let pair = {
+        image: base64image,
+        thePrompt: thePrompt,
+      }
+      // check if the user chain exists in the chains
+      if (chains.has(playerNumber)) {
+        let chain = chains.get(playerNumber);
+        chain.push(pair);
+      } else {
+        let chain = new Array();
+        chain.push(pair);
+        chains.set(playerNumber, chain);
+      }
+    } catch (e) {
+      let pair = {
+        image: base64image,
+        thePrompt: "No image found",
+      }
+      // check if the user chain exists in the chains
+      if (chains.has(playerNumber)) {
+        let chain = chains.get(playerNumber);
+        chain.push(pair);
+      } else {
+        let chain = new Array();
+        chain.push(pair);
+        chains.set(playerNumber, chain);
+      }
     }
-    // check if the user chain exists in the chains
-    if (chains.has(playerNumber)) {
-      let chain = chains.get(playerNumber);
-      chain.push(pair);
-    } else {
-      let chain = new Array();
-      chain.push(pair);
-      chains.set(playerNumber, chain);
-    }
-
   });
 }
 
@@ -373,6 +444,44 @@ function handleChat(player, message) {
   announce(player + ": " + message);
 }
 
+//Handles players or audience memmbers quitting the game
+function handleQuit(socket) {
+  if (socketsToPlayers.has(socket)) {
+    nextPlayerNumber = 1;
+    const player = socketsToPlayers.get(socket);
+
+    players.delete(player);
+    socketsToPlayers.delete(socket);
+    playersToSockets.delete(player);
+    
+    let tempPlayers = new Map();
+    let tempSocketsToPlayers = new Map();
+    let tempPlayersToSockets = new Map();
+    
+    for (let [playerNumber, player] of players) {
+      player.name = nextPlayerNumber;
+      tempPlayers.set(nextPlayerNumber, player);
+      let playerSocket = playersToSockets.get(playerNumber);
+      tempPlayersToSockets.set(nextPlayerNumber, playerSocket);
+      tempSocketsToPlayers.set(playerSocket, nextPlayerNumber);
+      nextPlayerNumber++;
+    }
+    
+    players = tempPlayers;
+    socketsToPlayers = tempSocketsToPlayers;
+    playersToSockets = tempPlayersToSockets;
+
+    if (players.size == 0) {
+      nextPlayerNumber = 0;
+    }
+    
+    console.log(players);
+    
+    console.log('Handling quit from player ' + player);
+  } 
+  updateAll();
+}
+
 //Handle new connection
 io.on("connection", (socket) => {
   console.log("New connection");
@@ -395,6 +504,7 @@ io.on("connection", (socket) => {
   //Handle disconnection
   socket.on("disconnect", () => {
     console.log("Dropped connection");
+    handleQuit(socket);
   });
 
   //Handle login
@@ -413,6 +523,12 @@ io.on("connection", (socket) => {
     let playerNum = socketsToPlayers.get(socket);
     getAccessToken().then(accessToken => getPrompt(base64image, accessToken, playerNum));
   });
+
+  //Handle restart
+  socket.on("restart", () => {
+    console.log("returning to game lobby");
+    restart();
+  })
 });
 
 //Start server

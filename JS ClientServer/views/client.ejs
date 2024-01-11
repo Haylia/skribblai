@@ -28,9 +28,14 @@
                 <%- include('play') -%>
               </div>
 
-              <!-- Game over -->
+              <!-- Round over -->
               <div v-else-if="state.state == 2">
                 <%- include('end') -%>
+              </div>
+
+              <!-- Game over -->
+              <div v-else-if="state.state == 3">
+                <%- include('results') -%>
               </div>
 
           </div>

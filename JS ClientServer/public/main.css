@@ -13,7 +13,8 @@ body {
   background-color: rgba(255, 255, 255, 0.8);
   padding-bottom: 10px;
   padding-top: 10px;
-  height: 100vh;
+  min-height: 100vh;
+  height: 100%;
 }
 #messages {
   list-style-type: none;
@@ -80,6 +81,32 @@ body {
   animation: shine 10s linear infinite;
   margin-top: 20px;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.table-container {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.table-cell {
+  flex: 0 0 33.33%; /* Three items per row */
+  box-sizing: border-box;
+  padding: 10px;
+}
+
+#chain {
+  overflow: auto;
+  max-height: 80vh;
+}
+
+#chain img {
+  background-color: white;
+  border: black 1px solid;
+}
+
+#chain label {
+  font-weight: bold;
+  font-size: 20px;
 }
 
 @keyframes shine {

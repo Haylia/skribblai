@@ -1,0 +1,23 @@
+<div class="col">
+    <div class="col text-center">
+        <h2>Chain {{chainNumber}}</h2>
+        <div id="chain">
+            <img id="image1" :src="image1">
+            <label id="prompt1">{{prompt1}}</label>
+            <br>
+            <br>
+            <img id="image2" :src="image2">
+            <label id="prompt2">{{prompt2}}</label>
+            <br>
+            <br>
+            <img id="image3" :src="image3">
+            <label id="prompt3">{{prompt3}}</label>
+        </div>
+        <div v-if="me.name == 1">
+            <button type="button" class="btn btn-sm btn primary" @click="admin('previous_chain')">Previous chain</button>
+            <button type="button" class="btn btn-sm btn primary" @click="admin('next_chain')">Next chain</button>
+            <button type="button" class="btn btn-sm btn primary" @click="restart">Go to beginning</button>
+        </div>
+    </div>
+</div>
+
